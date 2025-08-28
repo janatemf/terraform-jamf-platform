@@ -104,12 +104,12 @@ jobs:
           TF_VAR_jamfprotect_client_password: ${{ secrets.JAMF_PROTECT_CLIENT_PASSWORD }}
           # Enable onboarder modules for demo environment
           TF_VAR_include_onboarder_all: "true"
-          TF_VAR_include_onboarder_management_macOS: "true"
-          TF_VAR_include_onboarder_management_mobile: "true"
+          TF_VAR_include_onboarder_management_macOS: "false"
+          TF_VAR_include_onboarder_management_mobile: "false"
           TF_VAR_include_onboarder_app_installers: "true"
           # Enable additional demo features
-          TF_VAR_include_mac_cis_lvl1_benchmark: "false"
-          TF_VAR_include_mobile_cis_lvl1_benchmark: "false"
+          TF_VAR_include_mac_cis_lvl1_benchmark: "true"
+          TF_VAR_include_mobile_cis_lvl1_benchmark: "true"
           TF_VAR_include_categories: "false"
           TF_VAR_include_qol_smart_groups: "false"
           TF_VAR_include_microsoft_365: "false"
@@ -126,14 +126,12 @@ jobs:
             -var "jamfpro_username=$TF_VAR_jamfpro_username" \
             -var "jamfpro_password=$TF_VAR_jamfpro_password" \
             -var "include_onboarder_all=$TF_VAR_include_onboarder_all" \
-            -var "include_onboarder_management_macOS=$TF_VAR_include_onboarder_management_macOS" \
-            -var "include_onboarder_management_mobile=$TF_VAR_include_onboarder_management_mobile" \
             -var "include_onboarder_app_installers=$TF_VAR_include_onboarder_app_installers" \
             -var "include_mac_cis_lvl1_benchmark=$TF_VAR_include_mac_cis_lvl1_benchmark" \
             -var "include_mobile_cis_lvl1_benchmark=$TF_VAR_include_mobile_cis_lvl1_benchmark" \
             -out=demo.tfplan
           
-          terraform apply -auto-approve demo.tfplan
+          terraform apply -auto-approve -parallelism=1 demo.tfplan
 
       # Verify deployment success
       - name: Verify Demo Environment
