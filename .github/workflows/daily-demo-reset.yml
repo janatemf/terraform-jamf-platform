@@ -93,14 +93,31 @@ jobs:
           TF_VAR_jamfpro_auth_method: "basic"
           TF_VAR_jamfpro_username: ${{ secrets.JAMF_USERNAME }}
           TF_VAR_jamfpro_password: ${{ secrets.JAMF_PASSWORD }}
+          TF_VAR_jamfpro_client_id: ${{ secrets.JAMF_CLIENT_ID }}
+          TF_VAR_jamfpro_client_secret: ${{ secrets.JAMF_CLIENT_SECRET }}
+          TF_VAR_jsc_username: ${{ secrets.JSC_USERNAME }}
+          TF_VAR_jsc_password: ${{ secrets.JSC_PASSWORD }}
+          TF_VAR_jsc_applicationid: ${{ secrets.JSC_APPLICATION_ID }}
+          TF_VAR_jsc_applicationsecret: ${{ secrets.JSC_APPLICATION_SECRET }}
+          TF_VAR_jamfprotect_url: ${{ secrets.JAMF_PROTECT_URL }}
+          TF_VAR_jamfprotect_clientid: ${{ secrets.JAMF_PROTECT_CLIENT_ID }}
+          TF_VAR_jamfprotect_client_password: ${{ secrets.JAMF_PROTECT_CLIENT_PASSWORD }}
           # Enable onboarder modules for demo environment
           TF_VAR_include_onboarder_all: "true"
           TF_VAR_include_onboarder_management_macOS: "true"
           TF_VAR_include_onboarder_management_mobile: "true"
           TF_VAR_include_onboarder_app_installers: "true"
           # Enable additional demo features
-          TF_VAR_include_mac_cis_lvl1_benchmark: "true"
-          TF_VAR_include_mobile_cis_lvl1_benchmark: "true"
+          TF_VAR_include_mac_cis_lvl1_benchmark: "false"
+          TF_VAR_include_mobile_cis_lvl1_benchmark: "false"
+          TF_VAR_include_categories: "false"
+          TF_VAR_include_qol_smart_groups: "false"
+          TF_VAR_include_microsoft_365: "false"
+          TF_VAR_include_filevault: "false"
+          TF_VAR_include_jamf_protect_trial_kickstart: "false"
+          TF_VAR_include_jsc_all_services: "false"
+          TF_VAR_include_jsc_block_pages: "false"
+          TF_VAR_include_jsc_uemc: "false"
         run: |
           echo "Applying demo configuration to Jamf Pro..."
           terraform plan \
