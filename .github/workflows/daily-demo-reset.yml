@@ -106,7 +106,7 @@ jobs:
           TF_VAR_include_onboarder_all: "true"
           TF_VAR_include_onboarder_management_macOS: "false"
           TF_VAR_include_onboarder_management_mobile: "false"
-          TF_VAR_include_onboarder_app_installers: "true"
+          TF_VAR_include_onboarder_app_installers: "false"
           # Enable additional demo features
           TF_VAR_include_mac_cis_lvl1_benchmark: "false"
           TF_VAR_include_mobile_cis_lvl1_benchmark: "false"
@@ -126,7 +126,6 @@ jobs:
             -var "jamfpro_username=$TF_VAR_jamfpro_username" \
             -var "jamfpro_password=$TF_VAR_jamfpro_password" \
             -var "include_onboarder_all=$TF_VAR_include_onboarder_all" \
-            -var "include_onboarder_app_installers=$TF_VAR_include_onboarder_app_installers" \
             -out=demo.tfplan
           
           terraform apply -auto-approve -parallelism=1 demo.tfplan
