@@ -93,31 +93,14 @@ jobs:
           TF_VAR_jamfpro_auth_method: "basic"
           TF_VAR_jamfpro_username: ${{ secrets.JAMF_USERNAME }}
           TF_VAR_jamfpro_password: ${{ secrets.JAMF_PASSWORD }}
-         # TF_VAR_jamfpro_client_id: ${{ secrets.JAMF_CLIENT_ID }}
-         # TF_VAR_jamfpro_client_secret: ${{ secrets.JAMF_CLIENT_SECRET }}
-         # TF_VAR_jsc_username: ${{ secrets.JSC_USERNAME }}
-         # TF_VAR_jsc_password: ${{ secrets.JSC_PASSWORD }}
-         # TF_VAR_jsc_applicationid: ${{ secrets.JSC_APPLICATION_ID }}
-         # TF_VAR_jsc_applicationsecret: ${{ secrets.JSC_APPLICATION_SECRET }}
-         # TF_VAR_jamfprotect_url: ${{ secrets.JAMF_PROTECT_URL }}
-         # TF_VAR_jamfprotect_clientid: ${{ secrets.JAMF_PROTECT_CLIENT_ID }}
-         # TF_VAR_jamfprotect_client_password: ${{ secrets.JAMF_PROTECT_CLIENT_PASSWORD }}
           # Enable onboarder modules for demo environment
           TF_VAR_include_onboarder_all: "true"
           TF_VAR_include_onboarder_management_macOS: "true"
           TF_VAR_include_onboarder_management_mobile: "true"
           TF_VAR_include_onboarder_app_installers: "true"
           # Enable additional demo features
-          TF_VAR_include_mac_cis_lvl1_benchmark: "false"
-          TF_VAR_include_mobile_cis_lvl1_benchmark: "false"
-         # TF_VAR_include_categories: "false"
-         # TF_VAR_include_qol_smart_groups: "false"
-         # TF_VAR_include_microsoft_365: "false"
-         # TF_VAR_include_filevault: "false"
-         # TF_VAR_include_jamf_protect_trial_kickstart: "false"
-         # TF_VAR_include_jsc_all_services: "false"
-         # TF_VAR_include_jsc_block_pages: "false"
-         # TF_VAR_include_jsc_uemc: "false"
+          TF_VAR_include_mac_cis_lvl1_benchmark: "true"
+          TF_VAR_include_mobile_cis_lvl1_benchmark: "true"
         run: |
           echo "Applying demo configuration to Jamf Pro..."
           terraform plan \
@@ -125,29 +108,12 @@ jobs:
             -var "jamfpro_auth_method=$TF_VAR_jamfpro_auth_method" \
             -var "jamfpro_username=$TF_VAR_jamfpro_username" \
             -var "jamfpro_password=$TF_VAR_jamfpro_password" \
-          #  -var "jamfpro_client_id=$TF_VAR_jamfpro_client_id" \
-          #  -var "jamfpro_client_secret=$TF_VAR_jamfpro_client_secret" \
-          #  -var "jsc_username=$TF_VAR_jsc_username" \
-          #  -var "jsc_password=$TF_VAR_jsc_password" \
-          #  -var "jsc_applicationid=$TF_VAR_jsc_applicationid" \
-          #  -var "jsc_applicationsecret=$TF_VAR_jsc_applicationsecret" \
-          #  -var "jamfprotect_url=$TF_VAR_jamfprotect_url" \
-          #  -var "jamfprotect_clientid=$TF_VAR_jamfprotect_clientid" \
-          #  -var "jamfprotect_client_password=$TF_VAR_jamfprotect_client_password" \
             -var "include_onboarder_all=$TF_VAR_include_onboarder_all" \
             -var "include_onboarder_management_macOS=$TF_VAR_include_onboarder_management_macOS" \
             -var "include_onboarder_management_mobile=$TF_VAR_include_onboarder_management_mobile" \
             -var "include_onboarder_app_installers=$TF_VAR_include_onboarder_app_installers" \
             -var "include_mac_cis_lvl1_benchmark=$TF_VAR_include_mac_cis_lvl1_benchmark" \
             -var "include_mobile_cis_lvl1_benchmark=$TF_VAR_include_mobile_cis_lvl1_benchmark" \
-          #  -var "include_categories=$TF_VAR_include_categories" \
-          #  -var "include_qol_smart_groups=$TF_VAR_include_qol_smart_groups" \
-          #  -var "include_microsoft_365=$TF_VAR_include_microsoft_365" \
-          #  -var "include_filevault=$TF_VAR_include_filevault" \
-          #  -var "include_jamf_protect_trial_kickstart=$TF_VAR_include_jamf_protect_trial_kickstart" \
-          #  -var "include_jsc_all_services=$TF_VAR_include_jsc_all_services" \
-          #  -var "include_jsc_block_pages=$TF_VAR_include_jsc_block_pages" \
-          #  -var "include_jsc_uemc=$TF_VAR_include_jsc_uemc" \
             -out=demo.tfplan
           
           terraform apply -auto-approve demo.tfplan
