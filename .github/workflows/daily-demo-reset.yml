@@ -1,6 +1,9 @@
 name: "Daily Demo Server Reset"
 
 on:
+  push:
+    branches:
+      - setools-branch
   schedule:
     - cron: "0 6 * * *" # Daily at 6 AM UTC (adjust timezone as needed)
   workflow_dispatch: # Allow manual trigger for testing
