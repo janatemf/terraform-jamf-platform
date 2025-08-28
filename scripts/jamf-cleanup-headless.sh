@@ -185,6 +185,7 @@ main(){
     jamfhealthcheck
     getBearerToken
     delete_jamf_objects
+    delete_jamf_objects
     logstop
     
     echo "=== Cleanup Complete ==="
