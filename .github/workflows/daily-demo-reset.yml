@@ -53,11 +53,7 @@ jobs:
           terraform_version: latest
 
       # Install plutil for macOS commands (needed for cleanup script)
-      - name: Install required tools
-        run: |
-          # Install xmllint and other utilities needed by cleanup script
-          sudo apt-get update
-          sudo apt-get install -y libxml2-utils curl
+#####      sudo apt-get install -y libxml2-utils curl
 
       # Make cleanup script executable
       - name: Prepare cleanup script
