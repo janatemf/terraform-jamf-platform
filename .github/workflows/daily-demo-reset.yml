@@ -83,8 +83,8 @@ jobs:
       # Wait a moment for Jamf Pro to sync
       - name: Wait for Jamf Pro sync
         run: |
-          echo "Waiting 30 seconds for Jamf Pro to sync after cleanup..."
-          sleep 30
+          echo "Waiting 10 seconds for Jamf Pro to sync after cleanup..."
+          sleep 10
 
       # Apply Terraform with onboarder modules enabled
       - name: Apply Demo Configuration
@@ -130,65 +130,6 @@ jobs:
           
           terraform apply -auto-approve -parallelism=1 demo.tfplan
 
-      # Verify deployment success
-      - name: Verify Demo Environment
-        env:
-          JAMF_URL: ${{ secrets.JAMF_URL }}
-          JAMF_USERNAME: ${{ secrets.JAMF_USERNAME }}
-          JAMF_PASSWORD: ${{ secrets.JAMF_PASSWORD }}
-        run: |
-          echo "Verifying demo environment setup..."
-          # Basic health check
-          curl -ksS "$JAMF_URL/healthCheck.html" | grep -q "\\[\\]" && echo "✅ Jamf Pro health check passed" || echo "❌ Jamf Pro health check failed"
-          
-          # Check if objects were created (basic verification)
-          token_response=$(curl -s -u "$JAMF_USERNAME:$JAMF_PASSWORD" "$JAMF_URL/api/v1/auth/token" -X POST)
-          bearer_token=$(echo "$token_response" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
-          
-          if [ -n "$bearer_token" ]; then
-            # Check categories
-            categories=$(curl -s -H "Authorization: Bearer $bearer_token" "$JAMF_URL/JSSResource/categories" | grep -o '<id>[0-9]*</id>' | wc -l)
-            echo "✅ Created $categories categories"
-            
-            # Check configuration profiles
-            profiles=$(curl -s -H "Authorization: Bearer $bearer_token" "$JAMF_URL/JSSResource/osxconfigurationprofiles" | grep -o '<id>[0-9]*</id>' | wc -l)
-            echo "✅ Created $profiles configuration profiles"
-            
-            # Check policies
-            policies=$(curl -s -H "Authorization: Bearer $bearer_token" "$JAMF_URL/JSSResource/policies" | grep -o '<id>[0-9]*</id>' | wc -l)
-            echo "✅ Created $policies policies"
-          else
-            echo "❌ Could not authenticate to verify objects"
-          fi
-
-      # Cleanup on failure
-      - name: Cleanup on Failure
-        if: failure()
-        env:
-          TF_VAR_jamfpro_instance_url: ${{ secrets.JAMF_URL }}
-          TF_VAR_jamfpro_auth_method: "basic"
-          TF_VAR_jamfpro_username: ${{ secrets.JAMF_USERNAME }}
-          TF_VAR_jamfpro_password: ${{ secrets.JAMF_PASSWORD }}
-          TF_VAR_jamfpro_client_id: ${{ secrets.JAMF_CLIENT_ID }}
-          TF_VAR_jamfpro_client_secret: ${{ secrets.JAMF_CLIENT_SECRET }}
-          TF_VAR_jsc_username: ${{ secrets.JSC_USERNAME }}
-          TF_VAR_jsc_password: ${{ secrets.JSC_PASSWORD }}
-          TF_VAR_jsc_applicationid: ${{ secrets.JSC_APPLICATION_ID }}
-          TF_VAR_jsc_applicationsecret: ${{ secrets.JSC_APPLICATION_SECRET }}
-        run: |
-          echo "Workflow failed, attempting to destroy partial deployment..."
-          terraform destroy -auto-approve \
-            -var "jamfpro_instance_url=$TF_VAR_jamfpro_instance_url" \
-            -var "jamfpro_auth_method=$TF_VAR_jamfpro_auth_method" \
-            -var "jamfpro_username=$TF_VAR_jamfpro_username" \
-            -var "jamfpro_password=$TF_VAR_jamfpro_password" \
-            -var "jamfpro_client_id=$TF_VAR_jamfpro_client_id" \
-            -var "jamfpro_client_secret=$TF_VAR_jamfpro_client_secret" \
-            -var "jsc_username=$TF_VAR_jsc_username" \
-            -var "jsc_password=$TF_VAR_jsc_password" \
-            -var "jsc_applicationid=$TF_VAR_jsc_applicationid" \
-            -var "jsc_applicationsecret=$TF_VAR_jsc_applicationsecret" \
-            -var "include_onboarder_all=false" || true
 
   # Notification job (optional)
   notify-completion:
