@@ -28,15 +28,15 @@ module "configuration-jamf-pro-categories" {
   }
 }
 
-module "configuration-jamf-pro-computer-management-settings" {
-  source                = "../configuration-jamf-pro-computer-management-settings"
-  jamfpro_instance_url  = var.jamfpro_instance_url
-  jamfpro_client_id     = var.jamfpro_client_id
-  jamfpro_client_secret = var.jamfpro_client_secret
-  providers = {
-    jamfpro.jpro = jamfpro.jpro
-  }
-}
+#module "configuration-jamf-pro-computer-management-settings" {
+#  source                = "../configuration-jamf-pro-computer-management-settings"
+#  jamfpro_instance_url  = var.jamfpro_instance_url
+#  jamfpro_client_id     = var.jamfpro_client_id
+#  jamfpro_client_secret = var.jamfpro_client_secret
+#  providers = {
+#    jamfpro.jpro = jamfpro.jpro
+#  }
+#}
 
 module "management-macOS-rosetta" {
   source                = "../management-macOS-rosetta"
