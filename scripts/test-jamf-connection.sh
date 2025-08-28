@@ -54,8 +54,10 @@ fi
 echo "🔐 Testing authentication..."
 auth_response=$(curl -s -u "$JAMF_USERNAME:$JAMF_PASSWORD" "$JAMF_URL/api/v1/auth/token" -X POST)
 
+echo "$auth_response"
+
 if echo "$auth_response" | grep -q "token"; then
-    bearer_token=$(echo "$auth_response" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+    bearer_token=$(echo "$auth_response" | plutil -extract token raw -)
     echo -e "${GREEN}✅ Authentication successful${NC}"
 else
     echo -e "${RED}❌ Authentication failed${NC}"
@@ -63,9 +65,12 @@ else
     exit 1
 fi
 
+echo "Bearer Token: $bearer_token"
+
 # Test 3: Basic API Access
 echo "📊 Testing API access..."
 categories_response=$(curl -s -H "Authorization: Bearer $bearer_token" "$JAMF_URL/JSSResource/categories")
+echo "$categories_response"
 
 if echo "$categories_response" | grep -q "<categories>"; then
     category_count=$(echo "$categories_response" | grep -o '<id>[0-9]*</id>' | wc -l)
