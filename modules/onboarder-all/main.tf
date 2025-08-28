@@ -62,20 +62,20 @@ module "management-macOS-SSOe-Okta" {
   }
 }
 
-module "configuration-jamf-security-cloud-all-services" {
-  source                = "../configuration-jamf-security-cloud-all-services"
-  tje_okta_clientid     = var.tje_okta_clientid
-  tje_okta_orgdomain    = var.tje_okta_orgdomain
-  jamfpro_instance_url  = var.jamfpro_instance_url
-  jamfpro_client_id     = var.jamfpro_client_id
-  jamfpro_client_secret = var.jamfpro_client_secret
-  jsc_username          = var.jsc_username
-  jsc_password          = var.jsc_password
-  providers = {
-    jamfpro.jpro = jamfpro.jpro
-    jsc.jsc      = jsc.jsc
-  }
-}
+#module "configuration-jamf-security-cloud-all-services" {
+#  source                = "../configuration-jamf-security-cloud-all-services"
+#  tje_okta_clientid     = var.tje_okta_clientid
+#  tje_okta_orgdomain    = var.tje_okta_orgdomain
+#  jamfpro_instance_url  = var.jamfpro_instance_url
+#  jamfpro_client_id     = var.jamfpro_client_id
+#  jamfpro_client_secret = var.jamfpro_client_secret
+#  jsc_username          = var.jsc_username
+#  jsc_password          = var.jsc_password
+#  providers = {
+#    jamfpro.jpro = jamfpro.jpro
+#    jsc.jsc      = jsc.jsc
+#  }
+#}
 
 module "endpoint-security-macOS-filevault" {
   source                = "../endpoint-security-macOS-filevault"
