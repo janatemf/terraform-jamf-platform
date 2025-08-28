@@ -4,7 +4,15 @@ on:
   schedule:
     - cron: "0 6 * * *" # Daily at 6 AM UTC (adjust timezone as needed)
   workflow_dispatch: # Allow manual trigger for testing
-
+        inputs:
+          branch_name:
+            description: branch to run on
+            required: true
+            default: 'setools-branch'
+          environment:
+            description: 'Deployment environment'
+            required: false
+            default: 'demo'
 concurrency:
   group: demo-reset
   cancel-in-progress: false
