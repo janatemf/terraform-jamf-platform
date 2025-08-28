@@ -1,0 +1,93 @@
+# Demo Environment Configuration Template
+# Copy this to demo.tfvars and customize for your demo server
+
+# Jamf Pro Server Configuration
+# These will be provided via GitHub secrets in the workflow
+# jamfpro_instance_url  = "https://your-demo-server.jamfcloud.com"
+# jamfpro_auth_method   = "basic"  # or "oauth2"
+# jamfpro_username      = "your-demo-username"
+# jamfpro_password      = "your-demo-password"
+# jamfpro_client_id     = "your-client-id"     # for oauth2
+# jamfpro_client_secret = "your-client-secret" # for oauth2
+
+# Jamf Security Cloud Configuration (optional)
+# jsc_username          = "your-jsc-username"
+# jsc_password          = "your-jsc-password"
+# jsc_applicationid     = "your-jsc-app-id"
+# jsc_applicationsecret = "your-jsc-app-secret"
+
+# Jamf Protect Configuration (optional)
+# jamfprotect_url             = "https://your-protect-instance.protect.jamfcloud.com"
+# jamfprotect_clientid        = "your-protect-client-id"
+# jamfprotect_client_password = "your-protect-client-password"
+
+# Organization Details
+organization_name        = "Demo Organization"
+jamf_pro_activation_code = ""  # Leave empty if not needed
+
+##################################
+##### DEMO MODULE SELECTION #####
+##################################
+
+# Core Onboarder Modules (Recommended for Demos)
+include_onboarder_all                = true   # Includes everything below
+include_onboarder_management_macOS   = true   # Basic macOS management
+include_onboarder_management_mobile  = true   # Basic iOS/iPadOS management  
+include_onboarder_app_installers     = true   # Common app installers
+
+# Jamf Pro Configuration Modules
+include_jamf_pro_admin_sso           = false  # SSO configuration
+include_categories                   = true   # Demo categories
+include_qol_smart_groups             = true   # Quality of life smart groups
+include_computer_management_settings = true   # Computer management settings
+include_jamf_pro_activation_code     = false  # Activation code setup
+
+# Compliance Benchmark Modules
+include_mac_cis_lvl1_benchmark       = true   # macOS CIS Level 1
+include_mobile_cis_lvl1_benchmark    = true   # iOS CIS Level 1
+include_mac_stig_benchmark           = false  # macOS DISA STIG
+include_mobile_stig_benchmark        = false  # iOS DISA STIG
+include_mac_800_171_benchmark        = false  # macOS NIST 800-171
+include_mac_cmmc_lvl1_benchmark      = false  # macOS CMMC Level 1
+
+# Device Management Modules
+include_microsoft_365                = true   # Microsoft 365 apps
+include_filevault                    = true   # FileVault encryption
+include_rosetta                      = true   # Rosetta 2 for Apple Silicon
+include_ssoe_okta                    = false  # Okta SSO extension
+include_mobile_device_kickstart     = true   # Mobile device profiles
+
+# Endpoint Security Modules
+include_jamf_protect_trial_kickstart = false  # Jamf Protect (requires credentials)
+include_defender                     = false  # Microsoft Defender
+include_crowdstrike                  = false  # CrowdStrike
+
+# App Installer Selection (when include_onboarder_app_installers = true)
+app_installers = [
+  "google-chrome",
+  "mozilla-firefox", 
+  "slack",
+  "zoom",
+  "microsoft-edge"
+]
+
+# Jamf Security Cloud Modules (requires JSC credentials)
+include_jsc_all_services             = false  # All JSC services
+include_jsc_block_pages              = false  # Custom block pages
+include_jsc_uemc                     = false  # Unified Endpoint Management Console
+include_jsc_dp_only                  = false  # Data Protection only
+include_jsc_mtd_only                 = false  # Mobile Threat Defense only
+include_jsc_mtd_dp_only              = false  # MTD + Data Protection
+include_jsc_ztna                     = false  # Zero Trust Network Access
+include_jsc_ztna_dp_only             = false  # ZTNA + Data Protection
+include_jsc_ztna_mtd_only            = false  # ZTNA + MTD
+
+# Access Policies (for JSC)
+access_policies = []
+
+# Custom block page logo (base64 encoded)
+block_page_logo = ""
+
+# Advanced Settings
+random_string_boolean = false
+random_string         = ""

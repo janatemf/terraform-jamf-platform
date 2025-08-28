@@ -8,3 +8,4 @@ catalog-info.yaml
 plan.json
 plan.out
 *.terraformrc
+delete_all (1).sh

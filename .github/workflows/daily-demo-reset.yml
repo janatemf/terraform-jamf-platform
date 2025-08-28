@@ -1,0 +1,217 @@
+name: "Daily Demo Server Reset"
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # Daily at 6 AM UTC (adjust timezone as needed)
+  workflow_dispatch: # Allow manual trigger for testing
+
+concurrency:
+  group: demo-reset
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  jamf-pro-daily-reset:
+    runs-on: ubuntu-latest
+    environment: demo # Create this environment in GitHub repo settings
+    
+    env:
+      TF_CLI_ARGS_apply: "-parallelism=1"
+      TF_CLI_ARGS_destroy: "-parallelism=1"
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      # Install plutil for macOS commands (needed for cleanup script)
+      - name: Install required tools
+        run: |
+          # Install xmllint and other utilities needed by cleanup script
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils curl
+
+      # Make cleanup script executable
+      - name: Prepare cleanup script
+        run: |
+          chmod +x ./scripts/jamf-cleanup-headless.sh
+          ls -la ./scripts/
+
+      # Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # Check Terraform format
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      # Run cleanup script to delete all Jamf Pro objects
+      - name: Clean Jamf Pro Server
+        env:
+          JAMF_URL: ${{ secrets.JAMF_URL }}
+          JAMF_USERNAME: ${{ secrets.JAMF_USERNAME }}
+          JAMF_PASSWORD: ${{ secrets.JAMF_PASSWORD }}
+        run: |
+          echo "Starting Jamf Pro server cleanup..."
+          ./scripts/jamf-cleanup-headless.sh
+          echo "Cleanup completed."
+
+      # Wait a moment for Jamf Pro to sync
+      - name: Wait for Jamf Pro sync
+        run: |
+          echo "Waiting 30 seconds for Jamf Pro to sync after cleanup..."
+          sleep 30
+
+      # Apply Terraform with onboarder modules enabled
+      - name: Apply Demo Configuration
+        env:
+          TF_VAR_jamfpro_instance_url: ${{ secrets.JAMF_URL }}
+          TF_VAR_jamfpro_auth_method: "basic"
+          TF_VAR_jamfpro_username: ${{ secrets.JAMF_USERNAME }}
+          TF_VAR_jamfpro_password: ${{ secrets.JAMF_PASSWORD }}
+          TF_VAR_jamfpro_client_id: ${{ secrets.JAMF_CLIENT_ID }}
+          TF_VAR_jamfpro_client_secret: ${{ secrets.JAMF_CLIENT_SECRET }}
+          TF_VAR_jsc_username: ${{ secrets.JSC_USERNAME }}
+          TF_VAR_jsc_password: ${{ secrets.JSC_PASSWORD }}
+          TF_VAR_jsc_applicationid: ${{ secrets.JSC_APPLICATION_ID }}
+          TF_VAR_jsc_applicationsecret: ${{ secrets.JSC_APPLICATION_SECRET }}
+          TF_VAR_jamfprotect_url: ${{ secrets.JAMF_PROTECT_URL }}
+          TF_VAR_jamfprotect_clientid: ${{ secrets.JAMF_PROTECT_CLIENT_ID }}
+          TF_VAR_jamfprotect_client_password: ${{ secrets.JAMF_PROTECT_CLIENT_PASSWORD }}
+          # Enable onboarder modules for demo environment
+          TF_VAR_include_onboarder_all: "true"
+          TF_VAR_include_onboarder_management_macOS: "true"
+          TF_VAR_include_onboarder_management_mobile: "true"
+          TF_VAR_include_onboarder_app_installers: "true"
+          # Enable additional demo features
+          TF_VAR_include_mac_cis_lvl1_benchmark: "true"
+          TF_VAR_include_mobile_cis_lvl1_benchmark: "true"
+          TF_VAR_include_categories: "true"
+          TF_VAR_include_qol_smart_groups: "true"
+          TF_VAR_include_microsoft_365: "true"
+          TF_VAR_include_filevault: "true"
+          TF_VAR_include_jamf_protect_trial_kickstart: "true"
+          TF_VAR_include_jsc_all_services: "true"
+          TF_VAR_include_jsc_block_pages: "true"
+          TF_VAR_include_jsc_uemc: "true"
+        run: |
+          echo "Applying demo configuration to Jamf Pro..."
+          terraform plan \
+            -var "jamfpro_instance_url=$TF_VAR_jamfpro_instance_url" \
+            -var "jamfpro_auth_method=$TF_VAR_jamfpro_auth_method" \
+            -var "jamfpro_username=$TF_VAR_jamfpro_username" \
+            -var "jamfpro_password=$TF_VAR_jamfpro_password" \
+            -var "jamfpro_client_id=$TF_VAR_jamfpro_client_id" \
+            -var "jamfpro_client_secret=$TF_VAR_jamfpro_client_secret" \
+            -var "jsc_username=$TF_VAR_jsc_username" \
+            -var "jsc_password=$TF_VAR_jsc_password" \
+            -var "jsc_applicationid=$TF_VAR_jsc_applicationid" \
+            -var "jsc_applicationsecret=$TF_VAR_jsc_applicationsecret" \
+            -var "jamfprotect_url=$TF_VAR_jamfprotect_url" \
+            -var "jamfprotect_clientid=$TF_VAR_jamfprotect_clientid" \
+            -var "jamfprotect_client_password=$TF_VAR_jamfprotect_client_password" \
+            -var "include_onboarder_all=$TF_VAR_include_onboarder_all" \
+            -var "include_onboarder_management_macOS=$TF_VAR_include_onboarder_management_macOS" \
+            -var "include_onboarder_management_mobile=$TF_VAR_include_onboarder_management_mobile" \
+            -var "include_onboarder_app_installers=$TF_VAR_include_onboarder_app_installers" \
+            -var "include_mac_cis_lvl1_benchmark=$TF_VAR_include_mac_cis_lvl1_benchmark" \
+            -var "include_mobile_cis_lvl1_benchmark=$TF_VAR_include_mobile_cis_lvl1_benchmark" \
+            -var "include_categories=$TF_VAR_include_categories" \
+            -var "include_qol_smart_groups=$TF_VAR_include_qol_smart_groups" \
+            -var "include_microsoft_365=$TF_VAR_include_microsoft_365" \
+            -var "include_filevault=$TF_VAR_include_filevault" \
+            -var "include_jamf_protect_trial_kickstart=$TF_VAR_include_jamf_protect_trial_kickstart" \
+            -var "include_jsc_all_services=$TF_VAR_include_jsc_all_services" \
+            -var "include_jsc_block_pages=$TF_VAR_include_jsc_block_pages" \
+            -var "include_jsc_uemc=$TF_VAR_include_jsc_uemc" \
+            -out=demo.tfplan
+          
+          terraform apply -auto-approve demo.tfplan
+
+      # Verify deployment success
+      - name: Verify Demo Environment
+        env:
+          JAMF_URL: ${{ secrets.JAMF_URL }}
+          JAMF_USERNAME: ${{ secrets.JAMF_USERNAME }}
+          JAMF_PASSWORD: ${{ secrets.JAMF_PASSWORD }}
+        run: |
+          echo "Verifying demo environment setup..."
+          # Basic health check
+          curl -ksS "$JAMF_URL/healthCheck.html" | grep -q "\\[\\]" && echo "✅ Jamf Pro health check passed" || echo "❌ Jamf Pro health check failed"
+          
+          # Check if objects were created (basic verification)
+          token_response=$(curl -s -u "$JAMF_USERNAME:$JAMF_PASSWORD" "$JAMF_URL/api/v1/auth/token" -X POST)
+          bearer_token=$(echo "$token_response" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
+          
+          if [ -n "$bearer_token" ]; then
+            # Check categories
+            categories=$(curl -s -H "Authorization: Bearer $bearer_token" "$JAMF_URL/JSSResource/categories" | grep -o '<id>[0-9]*</id>' | wc -l)
+            echo "✅ Created $categories categories"
+            
+            # Check configuration profiles
+            profiles=$(curl -s -H "Authorization: Bearer $bearer_token" "$JAMF_URL/JSSResource/osxconfigurationprofiles" | grep -o '<id>[0-9]*</id>' | wc -l)
+            echo "✅ Created $profiles configuration profiles"
+            
+            # Check policies
+            policies=$(curl -s -H "Authorization: Bearer $bearer_token" "$JAMF_URL/JSSResource/policies" | grep -o '<id>[0-9]*</id>' | wc -l)
+            echo "✅ Created $policies policies"
+          else
+            echo "❌ Could not authenticate to verify objects"
+          fi
+
+      # Cleanup on failure
+      - name: Cleanup on Failure
+        if: failure()
+        env:
+          TF_VAR_jamfpro_instance_url: ${{ secrets.JAMF_URL }}
+          TF_VAR_jamfpro_auth_method: "basic"
+          TF_VAR_jamfpro_username: ${{ secrets.JAMF_USERNAME }}
+          TF_VAR_jamfpro_password: ${{ secrets.JAMF_PASSWORD }}
+          TF_VAR_jamfpro_client_id: ${{ secrets.JAMF_CLIENT_ID }}
+          TF_VAR_jamfpro_client_secret: ${{ secrets.JAMF_CLIENT_SECRET }}
+          TF_VAR_jsc_username: ${{ secrets.JSC_USERNAME }}
+          TF_VAR_jsc_password: ${{ secrets.JSC_PASSWORD }}
+          TF_VAR_jsc_applicationid: ${{ secrets.JSC_APPLICATION_ID }}
+          TF_VAR_jsc_applicationsecret: ${{ secrets.JSC_APPLICATION_SECRET }}
+        run: |
+          echo "Workflow failed, attempting to destroy partial deployment..."
+          terraform destroy -auto-approve \
+            -var "jamfpro_instance_url=$TF_VAR_jamfpro_instance_url" \
+            -var "jamfpro_auth_method=$TF_VAR_jamfpro_auth_method" \
+            -var "jamfpro_username=$TF_VAR_jamfpro_username" \
+            -var "jamfpro_password=$TF_VAR_jamfpro_password" \
+            -var "jamfpro_client_id=$TF_VAR_jamfpro_client_id" \
+            -var "jamfpro_client_secret=$TF_VAR_jamfpro_client_secret" \
+            -var "jsc_username=$TF_VAR_jsc_username" \
+            -var "jsc_password=$TF_VAR_jsc_password" \
+            -var "jsc_applicationid=$TF_VAR_jsc_applicationid" \
+            -var "jsc_applicationsecret=$TF_VAR_jsc_applicationsecret" \
+            -var "include_onboarder_all=false" || true
+
+  # Notification job (optional)
+  notify-completion:
+    runs-on: ubuntu-latest
+    needs: jamf-pro-daily-reset
+    if: always()
+    steps:
+      - name: Notify Status
+        run: |
+          if [ "${{ needs.jamf-pro-daily-reset.result }}" == "success" ]; then
+            echo "✅ Daily demo server reset completed successfully"
+            echo "Demo environment is ready for use at: ${{ secrets.JAMF_URL }}"
+          else
+            echo "❌ Daily demo server reset failed"
+            echo "Check workflow logs for details"
+          fi
