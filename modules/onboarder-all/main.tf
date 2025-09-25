@@ -86,3 +86,65 @@ module "endpoint-security-macOS-filevault" {
     jamfpro.jpro = jamfpro.jpro
   }
 }
+
+variable "app_installers" {
+  type = list(string)
+  default = [
+    "Adobe Creative Cloud",
+    "Box Drive",
+    "Dropbox",
+    "Google Chrome",
+    "Google Drive",
+    "JamfCheck",
+    "Microsoft Edge",
+    "Microsoft Teams",
+    "Microsoft Word 365",
+    "Microsoft Excel 365",
+    "Microsoft PowerPoint 365",
+    "Microsoft Outlook 365",
+    "Microsoft OneDrive",
+    "Mozilla Firefox",
+    "Nudge",
+    "Slack",
+    "TextExpander",
+    "Zoom Client for Meetings"
+  ]
+}
+
+module "management-app-installers" {
+  source                = "../management-app-installers"
+  for_each              = toset(var.app_installers)
+  app_installer_name    = each.value
+  jamfpro_instance_url  = var.jamfpro_instance_url
+  jamfpro_client_id     = var.jamfpro_client_id
+  jamfpro_client_secret = var.jamfpro_client_secret
+  providers = {
+    jamfpro.jpro = jamfpro.jpro
+  }
+}
+
+module "configuration-jamf-security-cloud-jamf-pro" {
+  source                = "../configuration-jamf-security-cloud-jamf-pro"
+  jamfpro_instance_url  = var.jamfpro_instance_url
+  jamfpro_client_id     = var.jamfpro_client_id
+  jamfpro_client_secret = var.jamfpro_client_secret
+  jsc_username          = var.jsc_username
+  jsc_password          = var.jsc_password
+  providers = {
+    jamfpro.jpro = jamfpro.jpro
+    jsc.jsc      = jsc.jsc
+  }
+}
+
+module "configuration-jamf-pro-jamf-protect" {
+  source                      = "../configuration-jamf-pro-jamf-protect"
+  jamfpro_instance_url        = var.jamfpro_instance_url
+  jamfpro_client_id           = var.jamfpro_client_id
+  jamfpro_client_secret       = var.jamfpro_client_secret
+  jamfprotect_url             = var.jamfprotect_url
+  jamfprotect_clientid        = var.jamfprotect_clientid
+  jamfprotect_client_password = var.jamfprotect_client_password
+  providers = {
+    jamfpro.jpro = jamfpro.jpro
+  }
+}

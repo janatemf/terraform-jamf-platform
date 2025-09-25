@@ -23,8 +23,14 @@ provider "jsc" {
 
 # Onboarder Modules
 module "onboarder-all" {
-  count  = var.include_onboarder_all == true ? 1 : 0
-  source = "./modules/onboarder-all"
+  count                       = var.include_onboarder_all == true ? 1 : 0
+  source                      = "./modules/onboarder-all"
+  jamfpro_instance_url        = var.jamfpro_instance_url
+  jamfpro_client_id           = var.jamfpro_client_id
+  jamfpro_client_secret       = var.jamfpro_client_secret
+  jamfprotect_url             = var.jamfprotect_url
+  jamfprotect_clientid        = var.jamfprotect_clientid
+  jamfprotect_client_password = var.jamfprotect_client_password
   providers = {
     jamfpro.jpro = jamfpro.jpro
     jsc.jsc      = jsc.jsc

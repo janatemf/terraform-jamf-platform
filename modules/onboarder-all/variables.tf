@@ -492,4 +492,21 @@ variable "random_string" {
   default = ""
 }
 
+variable "jamfprotect_url" {
+  description = "Jamf Protect URL name."
+  type        = string
+  default     = ""
+}
 
+variable "jamfprotect_clientid" {
+  description = "Jamf Protect Client ID for authentication."
+  type        = string
+  default     = ""
+}
+
+variable "jamfprotect_client_password" {
+  description = "Jamf Protect Client passwrd for authentication."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
