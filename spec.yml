@@ -62,9 +62,18 @@ options:
     presence: optional
     module_name: module.onboarder-all
     required_provider: jpro, jsc
-    category: Standard
+    category: Path
     display_name: Apply All
     display_desc: Create all API intergrations between management and security capabilties. Create all management configurations and security configurations available in Onboarder + CIS Level 1 for macOS, iOS, and iPadOS.
+ 
+ - key: custom_onboarder_path_placeholder
+    type: <boolean>
+    presence: optional
+    module_name: module.onboarder-custom-path-placeholder
+    required_provider: jpro, jsc
+    category: Path
+    display_name: Apply All
+    display_desc: Create a custom path by selecting individual modules.
 
   - key: include_onboarder_app_installers
     type: <boolean>
