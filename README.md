@@ -234,4 +234,123 @@ terraform init -upgrade
 
 Terraform must be formatted correctly to run, which can be done manually after saving changes before each run with `terraform fmt`. If using Visual Studio Code, use [this guide](https://medium.com/nerd-for-tech/how-to-auto-format-hcl-terraform-code-in-visual-studio-code-6fa0e7afbb5e) to never have to run the format command again!
 
-< INSERT INSTRUCTIONS FOR RUNNING TERRAFORM MODULES>
+## Testing Your Configuration
+
+Before applying changes to your Jamf environment, validate your configuration:
+
+```bash
+# Check formatting (must pass before apply)
+terraform fmt -check -recursive
+
+# Validate configuration syntax
+terraform validate
+
+# Preview changes without applying
+terraform plan
+
+# Apply with reduced parallelism (recommended)
+export TF_CLI_ARGS_apply="-parallelism=1"
+terraform apply
+```
+
+### Validation Checklist
+
+- [ ] `terraform fmt -check -recursive` passes
+- [ ] `terraform validate` passes
+- [ ] `terraform plan` shows expected changes
+- [ ] No unexpected resource deletions in plan output
+
+## State Management
+
+Terraform tracks your infrastructure in a state file (`terraform.tfstate`). This file contains sensitive information and must be handled carefully.
+
+### Local State (Default)
+
+By default, state is stored locally. This works for individual use but has limitations:
+- No collaboration support
+- No state locking (risk of concurrent modifications)
+- State file contains secrets in plaintext
+
+**Important:** The `.gitignore` excludes state files. Never commit `terraform.tfstate` or `terraform.tfstate.backup`.
+
+### Remote State (Recommended for Teams)
+
+For team environments, configure a remote backend with encryption and state locking.
+
+#### Terraform Cloud
+
+```hcl
+terraform {
+  cloud {
+    organization = "your-org"
+    workspaces {
+      name = "jamf-platform"
+    }
+  }
+}
+```
+
+See: [Terraform Cloud Documentation](https://developer.hashicorp.com/terraform/cloud-docs)
+
+#### S3 Backend
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "your-terraform-state-bucket"
+    key            = "jamf-platform/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "terraform-locks"
+  }
+}
+```
+
+See: [S3 Backend Documentation](https://developer.hashicorp.com/terraform/language/backend/s3)
+
+### State Security Best Practices
+
+1. **Never commit state files** - Already excluded in `.gitignore`
+2. **Use encryption at rest** - Enable for remote backends
+3. **Enable state locking** - Prevents concurrent modifications
+4. **Restrict access** - Limit who can read/write state
+5. **Back up before migrations** - Copy state before changing backends
+
+## Version Requirements
+
+### Terraform Version
+
+This project requires Terraform 1.0 or later. Check your version:
+
+```bash
+terraform version
+```
+
+### Provider Versions
+
+| Provider | Version | Registry |
+|----------|---------|----------|
+| jamfpro | ~> 0.30.0 | [deploymenttheory/jamfpro](https://registry.terraform.io/providers/deploymenttheory/jamfpro/latest) |
+| jsc | >= 0.0.23 | [Jamf-Concepts/jsctfprovider](https://registry.terraform.io/providers/Jamf-Concepts/jsctfprovider/latest) |
+| aws | ~> 5.0 | [hashicorp/aws](https://registry.terraform.io/providers/hashicorp/aws/latest) (optional) |
+
+### Updating Providers
+
+```bash
+# Update to latest compatible versions
+terraform init -upgrade
+
+# Check for available updates
+terraform providers
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development workflow, PR process, and coding standards.
+
+## Additional Documentation
+
+- [STYLE_GUIDE.md](./STYLE_GUIDE.md) - Naming conventions and patterns
+- [MODULE_TEMPLATE.md](./MODULE_TEMPLATE.md) - Template for creating new modules
+- [AGENTS.md](./AGENTS.md) - Context for AI coding assistants
+- [spec.yml](./spec.yml) - Module specification and options
