@@ -172,6 +172,15 @@ options:
     display_name: Enforce & Escrow FileVault 2
     display_desc: For managed computers, configure the necessary capabilities including Configuration Profile, Script, and Policy to enable and enforce FileVault 2 and make certain that the recovery key is escrowed by Jamf.
 
+  - key: include_laps
+    type: <boolean>
+    presence: optional
+    module_name: module.endpoint-security-macOS-laps
+    required_provider: jpro
+    category: Security
+    display_name: Configure Local Admin Password Solution (LAPS)
+    display_desc: Configures automatic management and rotation of local administrator passwords on macOS devices. Enables secure password deployment and automatic rotation policies.
+
   ## Jamf Protect Onboarder Modules
   - key: include_jamf_protect_trial_kickstart
     type: <boolean>

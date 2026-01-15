@@ -513,6 +513,12 @@ variable "include_filevault" {
   default = false
 }
 
+variable "include_laps" {
+  description = "Enable Local Admin Password Solution (LAPS) configuration"
+  type        = bool
+  default     = false
+}
+
 variable "include_rosetta" {
   type    = bool
   default = false

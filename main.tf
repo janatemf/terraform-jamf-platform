@@ -235,6 +235,17 @@ module "endpoint-security-macOS-filevault" {
   }
 }
 
+module "endpoint-security-macOS-laps" {
+  count                 = var.include_laps == true ? 1 : 0
+  source                = "./modules/endpoint-security-macOS-laps"
+  jamfpro_instance_url  = var.jamfpro_instance_url
+  jamfpro_client_id     = var.jamfpro_client_id
+  jamfpro_client_secret = var.jamfpro_client_secret
+  providers = {
+    jamfpro.jpro = jamfpro.jpro
+  }
+}
+
 module "endpoint-security-macOS-microsoft-defender" {
   count                 = var.include_defender == true ? 1 : 0
   source                = "./modules/endpoint-security-macOS-microsoft-defender"
