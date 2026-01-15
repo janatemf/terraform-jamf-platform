@@ -1,0 +1,150 @@
+name: "Daily Demo Server Reset v7"
+
+on:
+  push:
+    branches:
+      - setools-branch
+    paths:
+      - '.github/workflows/daily-demo-reset.yml'
+      - 'scripts/delete_all_jsc_resources.py'
+  schedule:
+    - cron: "0 5 * * *" # Daily at midnight EST (5 AM UTC)
+  workflow_dispatch: # Allow manual trigger for testing
+    inputs:
+      skip_jsc_cleanup:
+        description: 'Skip JSC cleanup (only clean Jamf Pro)'
+        required: false
+        type: boolean
+        default: false
+concurrency:
+  group: demo-reset
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  demo-reset:
+    runs-on: macos-latest
+    environment: demo
+
+    env:
+      TF_CLI_ARGS_apply: "-parallelism=1"
+      TF_CLI_ARGS_destroy: "-parallelism=1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4.0'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Make scripts executable
+        run: |
+          chmod +x ./scripts/jamf-cleanup-headless.sh
+          chmod +x ./scripts/delete_all_jsc_resources.py
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      # Step 1: Clean JSC tenant
+      - name: Clean JSC Tenant
+        if: ${{ !inputs.skip_jsc_cleanup }}
+        env:
+          JSC_USERNAME: ${{ secrets.JSC_USERNAME }}
+          JSC_PASSWORD: ${{ secrets.JSC_PASSWORD }}
+        run: |
+          echo "=== Cleaning JSC Tenant ==="
+          if [ -z "$JSC_USERNAME" ] || [ -z "$JSC_PASSWORD" ]; then
+            echo "⚠️  JSC credentials not configured, skipping JSC cleanup"
+          else
+            python ./scripts/delete_all_jsc_resources.py \
+              --username "$JSC_USERNAME" \
+              --password "$JSC_PASSWORD" \
+              --non-interactive
+            echo "✅ JSC cleanup completed"
+          fi
+
+      # Step 2: Clean Jamf Pro tenant
+      - name: Clean Jamf Pro Server
+        env:
+          JAMF_URL: ${{ secrets.JAMF_URL }}
+          JAMF_USERNAME: ${{ secrets.JAMF_USERNAME }}
+          JAMF_PASSWORD: ${{ secrets.JAMF_PASSWORD }}
+        run: |
+          echo "=== Cleaning Jamf Pro Server ==="
+          ./scripts/jamf-cleanup-headless.sh
+          echo "✅ Jamf Pro cleanup completed"
+
+      # Step 3: Wait for sync
+      - name: Wait for platform sync
+        run: |
+          echo "⏳ Waiting 15 seconds for platforms to sync..."
+          sleep 15
+
+      # Step 4: Apply Terraform configuration
+      - name: Apply Demo Configuration
+        env:
+          TF_VAR_jamfpro_instance_url: ${{ secrets.JAMF_URL }}
+          TF_VAR_jamfpro_auth_method: "basic"
+          TF_VAR_jamfpro_username: ${{ secrets.JAMF_USERNAME }}
+          TF_VAR_jamfpro_password: ${{ secrets.JAMF_PASSWORD }}
+          TF_VAR_jamfpro_client_id: ""
+          TF_VAR_jamfpro_client_secret: ""
+          TF_VAR_jsc_username: ${{ secrets.JSC_USERNAME }}
+          TF_VAR_jsc_password: ${{ secrets.JSC_PASSWORD }}
+          TF_VAR_jamfprotect_url: ${{ secrets.JAMF_PROTECT_URL }}
+          TF_VAR_jamfprotect_clientid: ${{ secrets.JAMF_PROTECT_CLIENT_ID }}
+          TF_VAR_jamfprotect_client_password: ${{ secrets.JAMF_PROTECT_CLIENT_PASSWORD }}
+          TF_VAR_include_onboarder_all: "true"
+        run: |
+          echo "=== Applying Demo Configuration ==="
+          terraform plan \
+            -var "jamfpro_instance_url=$TF_VAR_jamfpro_instance_url" \
+            -var "jamfpro_auth_method=$TF_VAR_jamfpro_auth_method" \
+            -var "jamfpro_username=$TF_VAR_jamfpro_username" \
+            -var "jamfpro_password=$TF_VAR_jamfpro_password" \
+            -var "jamfpro_client_id=$TF_VAR_jamfpro_client_id" \
+            -var "jamfpro_client_secret=$TF_VAR_jamfpro_client_secret" \
+            -var "jsc_username=$TF_VAR_jsc_username" \
+            -var "jsc_password=$TF_VAR_jsc_password" \
+            -var "jamfprotect_url=$TF_VAR_jamfprotect_url" \
+            -var "jamfprotect_clientid=$TF_VAR_jamfprotect_clientid" \
+            -var "jamfprotect_client_password=$TF_VAR_jamfprotect_client_password" \
+            -var "include_onboarder_all=$TF_VAR_include_onboarder_all" \
+            -out=demo.tfplan
+
+          terraform apply -auto-approve -parallelism=1 demo.tfplan
+          echo "✅ Demo configuration applied successfully"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Daily Demo Reset Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Jamf Pro URL:** ${{ secrets.JAMF_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Demo environment is ready for use!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Reset failed - check workflow logs for details" >> $GITHUB_STEP_SUMMARY
+          fi
